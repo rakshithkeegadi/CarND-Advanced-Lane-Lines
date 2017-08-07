@@ -33,12 +33,12 @@ by [Rakshith Krishnamurthy](https://www.linkedin.com/in/rakshith-krishnamurthy-3
 
 #### 1. Briefly state how you computed the camera matrix and distortion coefficients. Provide an example of a distortion corrected calibration image.
 
-The code to calibrate the image can be found in [here](https://github.com/rakshithkeegadi/CarND-Advanced-Lane-Lines/blob/master/advanced_lanes.ipynb). At first, all the images that are read were distorted images of a chessboard and after reading the distorted images the edges were recognised. 
+The code to calibrate the image can be found in [here](https://github.com/rakshithkeegadi/CarND-Advanced-Lane-Lines/blob/master/advanced_lanes.ipynb). At first, all the images that are read were distorted images of a chessboard and then the distorted images edges were recognised using cv2.drawChessboardCorners. 
 #### Chessboard images with edges are as below
 
 ![alt text][image2]
 
-Once the edges were recognized the camera is calibrated using cv2.calibrateCamera which gives out the parameters to undistort the image. The image parameters are then used to undistort the image and here is a sample of undistored chessboard.
+Once the edges were recognized the camera was calibrated using cv2.calibrateCamera which gives out the parameters to undistort the image. The image parameters are then used to undistort the image and here is a sample of undistored chessboard.
 
 ![alt text][image5]
 
@@ -46,13 +46,13 @@ Once the edges were recognized the camera is calibrated using cv2.calibrateCamer
 
 #### 1. Provide an example of a distortion-corrected image.
 
-I started off using a test image of the road which I undistorted the using the parameters from earlier cv2.calibrateCamera function and it looks like this.
+I started off using a test image of the road which I undistorted using the parameters from earlier cv2.calibrateCamera function and it looks like this.
 ![alt text][image6]
 
 
 #### 2. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
 
-Once the images was selected then I had to perform a perspective transformation. To do this efficiently I chose an test image where the lanes were straight just to mark my boundaries. Once the images was chose I identified the boundaries of my lanes as shown below
+Once the images was selected then I had to perform a perspective transformation. To do this efficiently I chose a test image where the lanes were straight just to mark my boundaries. Once the images was chose I identified the boundaries of my lanes as shown below
 
 ![alt text][image1]
 
@@ -83,37 +83,49 @@ This resulted in the following source and destination points:
 | x4      | 0.9*x       |
 | y4      | 0.9*y       |
 
----
 
-Now, I used the PerspectiveTransform open cv function with the source and festination to tranform my image and now the parallel lanes looked like this.
+Now, I used the PerspectiveTransform open cv function with the source and destination values to tranform my image and now the parallel lanes look like this.
 
 ![alt text][image7]
 
 #### 3. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
 
-The code for my perspective transform includes a function called `warper()`, which appears in lines 1 through 8 in the file `example.py` (output_images/examples/example.py) (or, for example, in the 3rd code cell of the IPython notebook).  The `warper()` function takes as inputs an image (`img`), as well as source (`src`) and destination (`dst`) points.  I chose the hardcode the source and destination points in the following manner:
+Now I color transfomed the image using a sobel magnitude and sobel absolute converstion. I also made use of the r channel and the s channel which helped me in identifying the yellow and white lanes. This also helped me reduce a lot of distortions. Also combining all the transformed images and I get a final image with the lanes detected.
+Here are few samples of different lane images detected.
 
-
-
-I verified that my perspective transform was working as expected by drawing the `src` and `dst` points onto a test image and its warped counterpart to verify that the lines appear parallel in the warped image.
-
-![alt text][image4]
+![alt text][image9]
 
 #### 4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
 
-Then I did some other stuff and fit my lane lines with a 2nd order polynomial kinda like this:
+The lane line pixels were identifed using a histogram. The mid point of x axis of the image was chosen as a reference point and then the peaks of true immediate pixels to the left and right of the mid reference points were identified as the left lane. 
+![alt text][image3]
+
+Using sliding window we start off from the bottom of the image using histogram values and then move up to construct lanes. The lanes are constructed for both the left and right lanes.
 
 ![alt text][image5]
 
+Once the lanes were identfied usign sliding window a polynomial Ay2+By+C is used to provide a polyfit curve instead of rectangels in sliding window. 
+
+![alt text][image10]
+
+This is very handy because if there is already a part of the lane detected we can construct the lanes using the polynomial fit for the next frame.
+
+
+
 #### 5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
 
-I did this in lines # through # in my code in `my_other_file.py`
+The radius of curvature was very intersting to calulate because I had to convert the pixels to meters ration.
+ym_per_pix = 30/720 for y &
+xm_per_pix = 3.7/700 for x.
+
+Rcurve=((1+(2Ay+B)^2)^3/2)/∣2A∣
+ the x & y pixel values are used to compute the left and right radius of curvatures.
 
 #### 6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
 
-I implemented this step in lines # through # in my code in `yet_another_file.py` in the function `map_lane()`.  Here is an example of my result on a test image:
+Once the radius is calculated now I draw lanes using cv2.warpPerspective() function which uses the Minv parameter from prespective transform function to transform the image back to orignal. This using x and y values end up transforming the image with lanes identified like this.
 
-![alt text][image6]
+![alt text][image4]
 
 ---
 
@@ -121,12 +133,24 @@ I implemented this step in lines # through # in my code in `yet_another_file.py`
 
 #### 1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (wobbly lines are ok but no catastrophic failures that would cause the car to drive off the road!).
 
-Here's a [link to my video result](./project_video.mp4)
+The pipline was constructed as mentioned below
+* Undistort the image.
+* Perspective transform
+* Color Thresholding
+* Sliding window(if previous fit is None or first frame)
+* Polyfit (if frame is present)
+* Calculate the radius ((left + right)/ 2)
+* Retransform the image.
 
----
+The pipeline output of my image is as shown [below](/project_video_output.mp4).
 
 ### Discussion
 
 #### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
+My pipeline can be implemented better and I for see the following improvements can be made:
+* It needs lanes on both sides the driving region.
+* My pipeline does not do well on roads with shadows.
+* It can be improved to perform better on steep curves.
+* Pipeline should be enhanced to identify the roads without lanes marked.
+* This lane marking was done on broad day light so it does not do well for night driving.
