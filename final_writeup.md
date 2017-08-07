@@ -90,36 +90,35 @@ Now, I used the PerspectiveTransform open cv function with the source and destin
 
 #### 3. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
 
-Now I color transfomed the image using a sobel magnitude and sobel absolute converstion. I also made use of the r channel and the s channel which helped me in identifying the yellow and white lanes. This also helped me reduce a lot of distortions. Also combining all the transformed images and I get a final image with the lanes detected.
+Now I color transfomed the image using a sobel magnitude and sobel absolute conversion. I also made use of the r channel and the s channel which helped me in identifying the yellow and white lanes. This also helped me reduce a lot of distortions. Also combining all the transformed images and I get a final image with the lanes detected.
 Here are few samples of different lane images detected.
 
 ![alt text][image9]
 
 #### 4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
 
-The lane line pixels were identifed using a histogram. The mid point of x axis of the image was chosen as a reference point and then the peaks of true immediate pixels to the left and right of the mid reference points were identified as the left lane. 
+The lane line pixels were identifed using a histogram. The mid point of x axis of the image was chosen as a reference point and then the peaks of true immediate pixels to the left and right of the mid reference points were identified as the left and right lanes. 
 ![alt text][image3]
 
 Using sliding window we start off from the bottom of the image using histogram values and then move up to construct lanes. The lanes are constructed for both the left and right lanes.
 
-![alt text][image5]
+![alt text][image8]
 
-Once the lanes were identfied usign sliding window a polynomial Ay2+By+C is used to provide a polyfit curve instead of rectangels in sliding window. 
+Once the lanes were identfied usign sliding window a polynomial Ay^2+By+C is used to provide a polyfit curve instead of rectangels in sliding window. 
 
 ![alt text][image10]
 
 This is very handy because if there is already a part of the lane detected we can construct the lanes using the polynomial fit for the next frame.
 
 
-
 #### 5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
 
-The radius of curvature was very intersting to calulate because I had to convert the pixels to meters ration.
+The radius of curvature was very intersting to calulate because I had to convert the pixels to meters ratio.
 ym_per_pix = 30/720 for y &
 xm_per_pix = 3.7/700 for x.
 
 Rcurve=((1+(2Ay+B)^2)^3/2)/∣2A∣
- the x & y pixel values are used to compute the left and right radius of curvatures.
+ the x & y pixel values are used to compute the left and right radius of curvatures in meters.
 
 #### 6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
 
